@@ -6,7 +6,6 @@ from torch.utils.data import DataLoader
 from transformers import Wav2Vec2Processor
 
 dataset_path_base = '../../dataset/fluent_speech_commands_dataset'
-# special_token_path = '../special_token.pt'
 model_name = 'vasista22/ccc-wav2vec2-base-100h'
 processor = Wav2Vec2Processor.from_pretrained(model_name)
 
@@ -14,7 +13,7 @@ tag_dict = {
     'O': 0, 'object': 1, 'location': 2
 }
 
-class DF_Dataset:
+class Dataset:
     def __init__(self,dataframe):
         self.dataframe = dataframe
     def __len__(self):
@@ -55,17 +54,17 @@ def collate_data(batch):
 def getData_FSC(type, batch_size):
     if type == 'train':
         train_df = pd.read_csv(os.path.join(dataset_path_base+'/data','train_labeled.csv'))
-        train_data = DF_Dataset(train_df)
+        train_data = Dataset(train_df)
         dataloader = DataLoader(train_data,batch_size=batch_size, shuffle=True, collate_fn=collate_data)
 
     elif type == 'valid':
         valid_df = pd.read_csv(os.path.join(dataset_path_base+'/data','valid_labeled.csv'))
-        valid_data = DF_Dataset(valid_df)
+        valid_data = Dataset(valid_df)
         dataloader = DataLoader(valid_data,batch_size=batch_size, shuffle=True, collate_fn=collate_data)
     else:
 
         test_df = pd.read_csv(os.path.join(dataset_path_base+'/data','test_labeled.csv'))
-        test_data = DF_Dataset(test_df)
+        test_data = Dataset(test_df)
         dataloader = DataLoader(test_data,batch_size=batch_size, shuffle=True, collate_fn=collate_data)
 
     return dataloader
