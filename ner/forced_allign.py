@@ -1,11 +1,11 @@
 import torch
 from dataclasses import dataclass
 
-def get_trellis(emission, tokens, blank_id=0):
+def get_trellis(emission, tokens, blank_id=0, device='cpu'):
     num_frame = emission.size(0)
     num_tokens = len(tokens)
 
-    trellis = torch.zeros((num_frame, num_tokens))
+    trellis = torch.zeros((num_frame, num_tokens)).to(device)
     trellis[1:, 0] = torch.cumsum(emission[1:, blank_id], 0)
     trellis[0, 1:] = -float("inf")
     trellis[-num_tokens + 1 :, 0] = float("inf")

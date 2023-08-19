@@ -28,7 +28,7 @@ epochs = 20  # Update this to the number of training epochs
 seq_length = 15  # Update this to your desired sequence length
 batch_size = 16  # Update this to your desired batch size
 
-device = 'cuda:7' if torch.cuda.is_available() else 'cpu'
+device = 'cuda:3' if torch.cuda.is_available() else 'cpu'
 
 model_name = 'vasista22/ccc-wav2vec2-base-100h'
 # model_name = 'facebook/wav2vec2-base-960h'

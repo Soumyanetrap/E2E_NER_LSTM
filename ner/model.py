@@ -14,7 +14,7 @@ def hook(module, input, output):
 class Seq2SeqBiLSTM(nn.Module):
     def __init__(self, embedding_dim, hidden_dim, output_dim, embed_model, layer, num_layers=1, device='cpu'):
         super(Seq2SeqBiLSTM, self).__init__()
-        # torch.manual_seed(10)
+        torch.manual_seed(10)
         
         self.embedding_dim = embedding_dim
         self.hidden_dim = hidden_dim
@@ -54,8 +54,7 @@ class Seq2SeqBiLSTM(nn.Module):
         # retrieve logits
         _= self.embed_model(batch['input_values'].to(self.device))
 
-        batch_out = layer_output.detach().cpu()
-
+        batch_out = layer_output
         hook_handle.remove()
         for out,transcript in zip(batch_out,batch['transcripts']):
             # take argmax and decode    
@@ -65,7 +64,7 @@ class Seq2SeqBiLSTM(nn.Module):
             
             dictionary = {c: i for i, c in enumerate(labels)}
             tokens = [dictionary[c] for c in transcript]
-            trellis = get_trellis(out, tokens)
+            trellis = get_trellis(out, tokens, device=self.device)
             transition_path = backtrack(trellis, out, tokens)
             segments = merge_repeats(transition_path, transcript)
             word_segments = merge_words(segments)
@@ -73,7 +72,7 @@ class Seq2SeqBiLSTM(nn.Module):
             for word in word_segments:
                 word_embeds.append(torch.mean(F.normalize(out[word.start:word.end]),0,True))
             for _ in range(maxlen-len(word_embeds)):
-                word_embeds.append(torch.zeros(1,768))
+                word_embeds.append(torch.zeros(1,768).to(self.device))
             input_seq.append(torch.stack(word_embeds))
         return torch.stack(input_seq).squeeze(2)
     
@@ -98,17 +97,3 @@ class Seq2SeqBiLSTM(nn.Module):
         decoder_outputs = torch.stack(decoder_outputs).permute(1,0,2)
         # print(decoder_outputs.shape)
         return decoder_outputs
-
-# # # Example usage
-# input_dim = 10000  # Vocabulary size for input
-# output_dim = 3  # Vocabulary size for output
-# embedding_dim = 768  # User-specified embedding dimension
-# hidden_dim = 256
-# seq_length =128
-# batch_size = 32
-
-# embed_model = Seq2SeqBiLSTM(embedding_dim, hidden_dim, output_dim)
-# input_sequence = torch.rand(batch_size, seq_length,embedding_dim)  # Replace with your actual input data
-# print(input_sequence.shape)
-# output_sequence = embed_model(input_sequence)
-# print(output_sequence.shape)  # Should be (batch_size, seq_length, output_dim)

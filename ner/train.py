@@ -24,12 +24,11 @@ def train(model, dataloader, epochs=10, device='cpu'):
             a,b,c = output_sequence.shape
             # Calculate loss
             loss = criterion(output_sequence.reshape(a*b, 3), target)
-            running_loss += loss.item()
+            running_loss += loss.detach().cpu().item()
             # Backpropagation and optimization
-            loss.backward(retain_graph=True)
+            loss.backward()
             optimizer.step()
-            # torch.cuda.empty_cache()
-        running_loss = running_loss.detach().cpu()
+        running_loss = running_loss
         loss_history.append((running_loss/len(dataloader)))
         print(f"Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}")
     return model,loss_history
